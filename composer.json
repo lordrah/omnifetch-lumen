@@ -1,0 +1,18 @@
+{
+  "name": "aros/omnifetch-lumen",
+  "type": "library",
+  "description": "Lumen Fetching Library for simplifying fetch API endpoints",
+  "keywords": ["fetch","fetching", "lumen", "laravel", "aros", "omnifetch"],
+  "homepage": "https://github.com/lordrah/omnifetch-phalcon",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Abdul-Rahman Shitu",
+      "email": "shituabdulrahman@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=7.0"
+  }
+}
