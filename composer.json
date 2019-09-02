@@ -3,7 +3,7 @@
   "type": "library",
   "description": "Lumen Fetching Library for simplifying fetch API endpoints",
   "keywords": ["fetch","fetching", "lumen", "laravel", "aros", "omnifetch"],
-  "homepage": "https://github.com/lordrah/omnifetch-phalcon",
+  "homepage": "https://github.com/lordrah/omnifetch-lumen",
   "license": "MIT",
   "authors": [
     {
