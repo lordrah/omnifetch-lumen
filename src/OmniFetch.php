@@ -128,7 +128,15 @@ class OmniFetch
      */
     protected $has_all = false;
 
+    /**
+     * @var array
+     */
     protected $filters;
+
+    /**
+     * @var array
+     */
+    protected $fields = null;
 
     /**
      * Fetches data for a single record
@@ -174,12 +182,11 @@ class OmniFetch
         }
 
         if (
-            method_exists($builder, 'joinWith') 
-            && !empty($this->join_with_relations[self::JOIN_RELATIONS]) 
+            !empty($this->join_with_relations[self::JOIN_RELATIONS])
             && !empty($this->join_with_relations[self::JOIN_RELATION_ALIASES])
         ){
             $builder = $builder->joinWith(
-                array_values($this->join_with_relations[self::JOIN_RELATIONS]), 
+                array_values($this->join_with_relations[self::JOIN_RELATIONS]),
                 array_values($this->join_with_relations[self::JOIN_RELATION_ALIASES])
             );
         }
@@ -197,12 +204,20 @@ class OmniFetch
             $builder->groupBy($this->group_by['group']);
         }
 
-        $this->total_count = $builder->count();
-
-        if (empty($this->page) && !$this->no_pages){
-            $builder->forPage(1, $this->page_size);
+        if (!empty($this->aggs) && empty($this->group_by['group'])){
+            $this->no_pages = 1;
+            $this->total_count = 1;
         } else {
-            $builder->forPage($this->page, $this->page_size);
+            $this->total_count = (!empty($this->group_by['group'])) ? $builder->get()->count() : $builder->count();
+        }
+
+
+        if (!$this->no_pages){
+            if (empty($this->page)){
+                $builder->forPage(1, $this->page_size);
+            } else {
+                $builder->forPage($this->page, $this->page_size);
+            }
         }
 
         return $this->prepareOutput($builder->get());
@@ -370,6 +385,8 @@ class OmniFetch
 
             $function = str_replace('{{col}}', $agg[OmniFetch::AGG_FIELD], self::$agg_functions[$agg[OmniFetch::AGG_FUNC]]);
             $final_aggs[] = DB::raw("{$function} AS `{$agg[OmniFetch::AGG_ALIAS]}`");
+
+            $this->fields[] = $agg[OmniFetch::AGG_ALIAS];
         }
 
         return $final_aggs;
@@ -390,7 +407,6 @@ class OmniFetch
                 OmniFetch::GROUP_BY_FIELD => 'required|string|regex:/^[A-Za-z0-9_.]+$/',
                 OmniFetch::GROUP_BY_FUNC => [
                     Rule::in(array_keys(self::$functions)),
-                    "required_with_all:" . OmniFetch::GROUP_BY_ALIAS,
                     'regex:/^[A-Za-z0-9_.]+$/'
                 ],
                 OmniFetch::GROUP_BY_ALIAS => [
@@ -424,13 +440,15 @@ class OmniFetch
             }
 
             if (empty($item[OmniFetch::GROUP_BY_FUNC])) {
-                $final_group_by['select'][] = $item[OmniFetch::GROUP_BY_FIELD];
+                $final_group_by['select'][] = (empty($item[OmniFetch::GROUP_BY_ALIAS])) ? $item[OmniFetch::GROUP_BY_FIELD] : DB::raw("{$item[OmniFetch::GROUP_BY_FIELD]} AS `{$item[OmniFetch::GROUP_BY_ALIAS]}`");
                 $final_group_by['group'][] = $item[OmniFetch::GROUP_BY_FIELD];
             } else {
                 $function = str_replace('{{col}}', $item[OmniFetch::GROUP_BY_FIELD], self::$functions[$item[OmniFetch::GROUP_BY_FUNC]]);
                 $final_group_by['select'][] = DB::raw("{$function} AS `{$item[OmniFetch::GROUP_BY_ALIAS]}`");
                 $final_group_by['group'][] =  DB::raw($function);
             }
+
+            $this->fields[] = (empty($item[OmniFetch::GROUP_BY_ALIAS])) ? $column : $item[OmniFetch::GROUP_BY_ALIAS];
         }
 
         return $final_group_by;
@@ -489,9 +507,24 @@ class OmniFetch
         } else if (!$this->no_pages) {
             $output['pagination']['total_pages'] = ceil(1.0 * $this->total_count / $this->page_size);
             $output['pagination']['current_page'] = 1;
+        } else {
+            $output['pagination']['total_pages'] = 1;
+            $output['pagination']['current_page'] = 1;
         }
 
-        $output['list'] = $items->toArray();
+        $list = $items->toArray();
+        if (is_array($this->fields)){
+            foreach ($list as &$item){
+                $filter_item = [];
+                foreach ($this->fields as $field){
+                    $filter_item[$field] = (empty($item[$field])) ? null : $item[$field];
+                }
+
+                $item = $filter_item;
+            }
+        }
+
+        $output['list'] = $list;
         $output['pagination']['count'] = $items->count();
 
         return $output;
