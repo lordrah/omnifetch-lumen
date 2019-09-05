@@ -13,7 +13,6 @@ use Illuminate\Validation\Rule;
 class OmniFetch
 {
     const DEFAULT_PAGE_SIZE = 20;
-    const DEFAULT_REF_FIELD = 'id';
 
     const LOGICAL_OP_AND = 'AND';
     const LOGICAL_OP_OR = 'OR';
@@ -21,8 +20,6 @@ class OmniFetch
     const ORDER_ASC = 'asc';
     const ORDER_DESC = 'desc';
 
-    const LABEL_REF = 'ref';
-    const LABEL_REF_FIELD = 'ref_field';
     const LABEL_FILTER = 'filters';
     const LABEL_PAGE_SIZE = 'page_size';
     const LABEL_EMBEDS = 'embeds';
@@ -45,7 +42,6 @@ class OmniFetch
     const FILTER_COND_OP = 'cond_op';
     const FILTER_VALUE = 'value';
     const FILTER_LOGICAL_OP = 'logical_op';
-    const FILTER_FUNC = 'func';
 
     const COND_IS_NULL = 'IS_NULL';
     const COND_IS_NOT_NULL = 'IS_NOT_NULL';
@@ -69,26 +65,6 @@ class OmniFetch
         'max' => 'MAX({{col}})',
         'sum' => 'SUM({{col}})'
     ];
-
-    /**
-     * @var string
-     *
-     * The value used as a ref to paginate.
-     * e.g if the ref_field is `id` and the `ref` is 6,
-     * the condition for the page would be id > 6 or id < 6
-     * depending on the `is_asc` flag
-     */
-    protected $ref;
-
-    /**
-     * @var string
-     *
-     * The field name of the column used for the pagination.
-     * e.g if the ref_field is `id` and the `ref` is 6,
-     * the condition for the page would be id > 6 or id < 6
-     * depending on the `is_asc` flag
-     */
-    protected $ref_field;
 
     /**
      * @var integer
@@ -157,10 +133,10 @@ class OmniFetch
     /**
      * Fetches data for a single record
      * @param Builder $builder
-     * @param $params
+     * @param array $params
      * @return \Illuminate\Database\Eloquent\Model|null|static
      */
-    public function getSingle(Builder $builder, $params)
+    public function getSingle(Builder $builder, array $params)
     {
         $this->loadParams($builder, $params);
         $builder = $builder->with($this->embeds);
@@ -175,7 +151,7 @@ class OmniFetch
      * @param array $params
      * @return array
      */
-    public function paginate(Builder $builder, $params)
+    public function paginate(Builder $builder, array $params)
     {
         $this->loadParams($builder, $params);
 
@@ -312,9 +288,7 @@ class OmniFetch
      */
     protected function loadParams(Builder $builder, $params)
     {
-        $this->ref = (empty($params[self::LABEL_REF])) ? null : $params[self::LABEL_REF];
         $this->no_pages = (isset($params[self::LABEL_NO_PAGES]) && intval($params[self::LABEL_NO_PAGES]) > 0);
-        $this->ref_field = (empty($params[self::LABEL_REF_FIELD])) ? self::DEFAULT_REF_FIELD : $params[self::LABEL_REF_FIELD];
         $this->page_size = (empty($params[self::LABEL_PAGE_SIZE])) ? self::DEFAULT_PAGE_SIZE : $params[self::LABEL_PAGE_SIZE];
         $this->order_by = (empty($params[self::LABEL_ORDER_BY])) ? null : $params[self::LABEL_ORDER_BY];
         $this->is_asc = (!isset($params[self::LABEL_IS_ASC]) || intval($params[self::LABEL_IS_ASC]) != 0);
