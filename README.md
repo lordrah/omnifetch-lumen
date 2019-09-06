@@ -1,6 +1,8 @@
 # OmniFetch for Lumen
 OmniFetch for Lumen is a useful library which makes fetch API endpoints easier to set up and flexible enough for different situations. The library allows for easy modification of the response data set on the fly by passing in query parameters as part of the request. These modifications can range from apply filters, embedding related data and pagination to aggregating data with group bys. 
 
+[![Total Downloads](https://img.shields.io/packagist/dt/aros/omnifetch-lumen.svg?style=flat-square)](https://packagist.org/packages/aros/omnifetch-lumen)
+
 ## Installation
 ```
 $ composer require aros/omnifetch-lumen
@@ -10,7 +12,7 @@ $ composer require aros/omnifetch-lumen
 
 ## Main Functionalities
 
-OmniFetch has only two methods can be used. They are the following:
+OmniFetch has only two methods that can be used. They are the following:
 * **OmniFetch::getSingle**(Illuminate\Database\Eloquent\Builder $builder, array $params) - *used to fetch a single record.*
 * **OmniFetch::paginate**(Illuminate\Database\Eloquent\Builder $builder, array $params) - *used to fetch a list of records*
 
@@ -21,9 +23,12 @@ The builder being used should be created using a model (i.e. primary model). e.g
 The **OmniFetch::getSingle** and **OmniFetch::paginate** both require the **$params** in their arguments which is an associative array of options. 
 
  * **filters** (data type: JSON list /array):
-Adds criteria to the query. It can take as many criteria as required. Each criterion is a JSON object (if filters is a JSON list, this format is best if it is passed as a request query parameter) or an associative array (if the filters is an array). It contains the following fields: 
+Adds criteria to the query. It can take as many criteria as required. Each criterion is a JSON object (if *filters* is a JSON list, this format is best if it is passed as a request query parameter) or an associative array (if *filters* is an array). It contains the following fields: 
 	- *field* (required): the field used for the filtering. It can be a field from the primary model or a related model (which can be done by indicating the relation name specified in the primary model followed by the relation's field. e.g. *author.rating *). It supports nested relations fields e.g. *author.publisher.is_local*.
-	- *value* (required): the value to be used. **Note**: if **%** is used in the value it needs to be URL encoded if it is passed as a request query parameter.
+	- *value* (required): the value to be used. 
+	
+	> **Note**: if **%** is used in the value it needs to be URL encoded if it is passed as a request query parameter.
+	
 	- *cond_op* (optional | default:  '*=*'):  the conditional operator used in comparing the field and value. The available operators are: =, !=, >, <, >=, <=, LIKE, IS_NULL (only *field* is needed), IS_NOT_NULL (only *field* is needed).
 	- *logical_op* (optional | default: '*AND*'): the logical operator used to combine the remaining filters after it. The available operators are AND and OR.
 	
@@ -59,10 +64,11 @@ Specifies the field to order by (relation field are not supported for now).
 Specifies the ordering direction
 
  * **aggs** (data type: JSON list /array):
-Used for performing aggregations such as *sum*, *min* and *max*. Each aggregation specified in the list is a JSON object (if aggs is a JSON list) or associative array (if aggs is an array). The following are the fields that each aggregation can have:
+Used for performing aggregations such as *sum*, *min* and *max*. Each aggregation specified in the list is a JSON object (if *aggs* is a JSON list) or associative array (if *aggs* is an array). The following are the fields that each aggregation can have:
 	- *field* (required): The field to be aggregated. This can be a field of a relation. Nested relations are allowed. 
 	
 		> **Note**: In order to use relation fields, the primary model must have the `OmniFetch\HasJoinWith` trait. 
+		
 	- *alias* (required): The alias used for the aggregation.
 	- *func* (required): The aggregation function. The following are available:
 		- *count* => `COUNT({{col}})` 
