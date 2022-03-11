@@ -422,6 +422,7 @@ class OmniFetch
             $field_paths = explode('.', $item[OmniFetch::GROUP_BY_FIELD]);
             $count = count($field_paths);
             if ($count == 1){
+                $column = $item[OmniFetch::GROUP_BY_FIELD];
                 $item[OmniFetch::GROUP_BY_FIELD] = $builder->getModel()->getTable() . '.'  . $item[OmniFetch::GROUP_BY_FIELD];
             } else {
                 $column = array_pop($field_paths);
