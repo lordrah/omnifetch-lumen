@@ -204,11 +204,11 @@ class OmniFetch
             $builder->groupBy($this->group_by['group']);
         }
 
-        if (!empty($this->aggs) && empty($this->group_by['group'])){
+        if (!empty($this->aggs) && empty($builder->getQuery()->groups)){
             $this->no_pages = 1;
             $this->total_count = 1;
         } else {
-            $this->total_count = (!empty($this->group_by['group'])) ? $builder->get()->count() : $builder->count();
+            $this->total_count = (!empty($builder->getQuery()->groups)) ? $builder->get()->count() : $builder->count();
         }
 
 
